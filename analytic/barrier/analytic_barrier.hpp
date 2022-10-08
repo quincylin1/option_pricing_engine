@@ -15,9 +15,6 @@ public:
     AnalyticBarrier(StatisticalDistribution *sd, AnalyticEuropean *pAnalytic);
     ~AnalyticBarrier(){};
 
-    virtual double d_j(const int &j, const double &S, const double &K, const double &r,
-                       const double &v, const double &T) const;
-
     virtual double calc_gamma(const double &r, const double &q,
                               const double &v) const;
 
@@ -25,7 +22,7 @@ public:
                             const double &v, const double &tau,
                             const double &K, const double &gamma) const;
 
-    virtual double calc_mu(const double &S, const double &B,
+    virtual double calc_nu(const double &S, const double &B,
                            const double &v, const double &tau,
                            const double &gamma) const;
 

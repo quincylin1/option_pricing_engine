@@ -8,13 +8,13 @@ StandardNormalDistribution::StandardNormalDistribution() {}
 StandardNormalDistribution::~StandardNormalDistribution() {}
 
 // Probability density function
-double StandardNormalDistribution::pdf(const double &x) const
+double StandardNormalDistribution::pdf(const double &x)
 {
     return (1.0 / sqrt(2.0 * M_PI)) * exp(-0.5 * x * x);
 }
 
 // Cumulative density function
-double StandardNormalDistribution::cdf(const double &x) const
+double StandardNormalDistribution::cdf(const double &x) 
 {
     double k = 1.0 / (1.0 + 0.23164198 * x);
     double k_sum = k * (0.319381530 + k * (-0.356563782 + k * (1.781477937 +
@@ -31,7 +31,7 @@ double StandardNormalDistribution::cdf(const double &x) const
 }
 
 // Inverse cumulative density function
-double StandardNormalDistribution::inv_cdf(const double &quantile) const
+double StandardNormalDistribution::inv_cdf(const double &quantile) 
 {
     // This is the Beasley−Springer−Moro algorithm which can
     // be found in Glasserman [2004]. We won’t go into the

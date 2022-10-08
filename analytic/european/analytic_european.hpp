@@ -14,12 +14,12 @@ public:
     ~AnalyticEuropean();
 
     virtual double d_j(const int &j, const double &S, const double &K, const double &r,
-                       const double &v, const double &T) const;
+                       const double &v, const double &T, const double& q) const;
 
     virtual double calc_call_price(const double &S, const double &K, const double &r,
-                                   const double &v, const double &T) const;
+                                   const double &v, const double &T, const double &q) const;
     virtual double calc_put_price(const double &S, const double &K, const double &r,
-                                  const double &v, const double &T) const;
+                                  const double &v, const double &T, const double &q) const;
 };
 
 #endif

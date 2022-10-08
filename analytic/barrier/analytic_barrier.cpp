@@ -20,7 +20,7 @@ double AnalyticBarrier::calc_eta(const double &S, const double &B,
     return log((B * B) / (S * K)) / (v * sqrt(tau)) + gamma * v * sqrt(tau);
 }
 
-double AnalyticBarrier::calc_mu(const double &S, const double &B,
+double AnalyticBarrier::calc_nu(const double &S, const double &B,
                                 const double &v, const double &tau,
                                 const double &gamma) const
 {
@@ -44,7 +44,7 @@ double AnalyticBarrier::calc_up_and_out_call_price(const double &S, const double
         return 0.0;
     }
 
-    double european_call_price = _pAnalytic->calc_call_price(S, K, r, v, T);
+    double european_call_price = _pAnalytic->calc_call_price(S, K, r, v, T, q);
     double up_and_in_call_price = calc_up_and_in_call_price(S, K, r, v, T, q, B, tau);
     return european_call_price - up_and_in_call_price;
 }
@@ -54,18 +54,20 @@ double AnalyticBarrier::calc_up_and_in_call_price(const double &S, const double 
                                                       const double &B, const double &tau) const
 {
     if (B < K) {
-        return _pAnalytic->calc_call_price(S, K, r, v, T);
+        return _pAnalytic->calc_call_price(S, K, r, v, T, q);
     }
 
     double gamma = calc_gamma(r, q, v);
-    double mu = calc_mu(S, B, v, tau, gamma);
+    double nu = calc_nu(S, B, v, tau, gamma);
     double lambda = calc_lambda(S, B, v, tau, gamma);
     double eta = calc_eta(S, B, v, tau, K, gamma);
 
-    return S * exp(-q * tau) * _sd->cdf(mu) 
-      - K * exp(-r * tau) * _sd->cdf(mu - v * sqrt(tau)) 
-      - S * exp(-q * tau) * pow((B / S), 2.0 * gamma) * (_sd->cdf(-eta) - _sd->cdf(-lambda)) 
-      + K * exp(-r * tau) * pow((B / S), 2.0 * gamma - 2.0) * (_sd->cdf(-eta + v * sqrt(tau)) - _sd->cdf(-lambda + v * sqrt(tau)));
+    double term_1 = S * exp(-q * tau) * _sd->cdf(nu);
+    double term_2 = K * exp(-r * tau) * _sd->cdf(nu - v * sqrt(tau));
+    double term_3 = S * exp(-q * tau) * pow((B / S), 2.0 * gamma) * (_sd->cdf(-eta) - _sd->cdf(-lambda));
+    double term_4 = K * exp(-r * tau) * pow((B / S), 2.0 * gamma - 2.0) * (_sd->cdf(-eta + v * sqrt(tau)) - _sd->cdf(-lambda + v * sqrt(tau)));
+
+    return term_1 - term_2 - term_3 + term_4;
 }
 
 double AnalyticBarrier::calc_down_and_out_call_price(const double &S, const double &K, const double &r,
@@ -75,19 +77,27 @@ double AnalyticBarrier::calc_down_and_out_call_price(const double &S, const doub
 
     if (B < K)
     {
-        double european_call_price = _pAnalytic->calc_call_price(S, K, r, v, T);
+        double european_call_price = _pAnalytic->calc_call_price(S, K, r, v, T, q);
         double down_and_in_call_price = calc_down_and_in_call_price(S, K, r, v, T, q, B, tau);
         return european_call_price - down_and_in_call_price;
     }
+    else{
+        if (B > S) {
+            return 0.0;
+        } else {
+            double gamma = calc_gamma(r, q, v);
+            double nu = calc_nu(S, B, v, tau, gamma);
+            double lambda = calc_lambda(S, B, v, tau, gamma);
 
-    double gamma = calc_gamma(r, q, v);
-    double mu = calc_mu(S, B, v, tau, gamma);
-    double lambda = calc_lambda(S, B, v, tau, gamma);
+            double term_1 = S * exp(-q * tau) * _sd->cdf(nu);
+            double term_2 = K * exp(-r * tau) * _sd->cdf(nu - v * sqrt(tau));
 
-    return S * exp(-q * tau) * _sd->cdf(mu) 
-      - K * exp(-r * tau) * _sd->cdf(mu - v * sqrt(tau)) 
-      - S * exp(-q * tau) * pow((B / S), 2.0 * gamma) * _sd->cdf(lambda) 
-      + K * exp(-r * tau) * pow((B / S), 2.0 * gamma - 2.0) * _sd->cdf(lambda - v * sqrt(tau));
+            double term_3 = S * exp(-q * tau) * pow((B / S), 2.0 * gamma) * _sd->cdf(lambda);
+            double term_4 = K * exp(-r * tau) * pow((B / S), 2.0 * gamma - 2.0) * _sd->cdf(lambda - v * sqrt(tau));
+
+            return term_1 - term_2 - term_3 + term_4;
+        }
+    }
 }
 
 double AnalyticBarrier::calc_down_and_in_call_price(const double &S, const double &K, const double &r,
@@ -98,13 +108,24 @@ double AnalyticBarrier::calc_down_and_in_call_price(const double &S, const doubl
         double gamma = calc_gamma(r, q, v);
         double eta = calc_eta(S, B, v, tau, K, gamma);
 
-        return S * exp(-q * tau) * pow((B / S), 2.0 * gamma) * _sd->cdf(eta) 
-          - K * exp(-r * tau) * pow((B / S), 2.0 * gamma - 2.0) * _sd->cdf(eta - v * sqrt(tau));
-    }
+        double term_1 = S * exp(-q * tau) * pow((B / S), 2.0 * gamma) * _sd->cdf(eta);
+        double term_2 = K * exp(-r * tau) * pow((B / S), 2.0 * gamma - 2.0) * _sd->cdf(eta - v * sqrt(tau));
 
-    double european_call_price = _pAnalytic->calc_call_price(S, K, r, v, T);
-    double down_and_out_call_price = calc_down_and_out_call_price(S, K, r, v, T, q, B, tau);
-    return european_call_price - down_and_out_call_price;
+        return term_1 - term_2;
+    }
+    else {
+        double european_call_price = _pAnalytic->calc_call_price(S, K, r, v, T, q);
+
+        if (B > S)
+        {
+            return european_call_price;
+        } 
+        else 
+        {
+            double down_and_out_call_price = calc_down_and_out_call_price(S, K, r, v, T, q, B, tau);
+            return european_call_price - down_and_out_call_price;
+        }
+    }
 }
 
 double AnalyticBarrier::calc_up_and_out_put_price(const double &S, const double &K, const double &r,
@@ -114,17 +135,23 @@ double AnalyticBarrier::calc_up_and_out_put_price(const double &S, const double 
 
     if (B < K)
     {
-        double gamma = calc_gamma(r, q, v);
-        double mu = calc_mu(S, B, v, tau, gamma);
-        double lambda = calc_lambda(S, B, v, tau, gamma);
+        if (B < S) {
+            return 0.0;
+        }else{
+            double gamma = calc_gamma(r, q, v);
+            double nu = calc_nu(S, B, v, tau, gamma);
+            double lambda = calc_lambda(S, B, v, tau, gamma);
 
-        return -S * exp(-q * tau) * _sd->cdf(-mu) 
-          + K * exp(-r * tau) * _sd->cdf(-mu + v * sqrt(tau)) 
-          + S * exp(-q * tau) * pow((B / S), 2.0 * gamma) * _sd->cdf(-lambda) 
-          - K * exp(-r * tau) * pow((B / S), 2.0 * gamma - 2.0) * _sd->cdf(-lambda + v * sqrt(tau));
+            double term_1 = S * exp(-q * tau) * _sd->cdf(-nu);
+            double term_2 = K * exp(-r * tau) * _sd->cdf(-nu + v * sqrt(tau));
+            double term_3 = S * exp(-q * tau) * pow((B / S), 2.0 * gamma) * _sd->cdf(-lambda);
+            double term_4 = K * exp(-r * tau) * pow((B / S), 2.0 * gamma - 2.0) * _sd->cdf(-lambda + v * sqrt(tau));
+
+            return -term_1 + term_2 + term_3 - term_4;
+        }
     }
 
-    double european_put_price = _pAnalytic->calc_put_price(S, K, r, v, T);
+    double european_put_price = _pAnalytic->calc_put_price(S, K, r, v, T, q);
     double up_and_in_put_price = calc_up_and_in_put_price(S, K, r, v, T, q, B, tau);
     return european_put_price - up_and_in_put_price;
 }
@@ -135,9 +162,13 @@ double AnalyticBarrier::calc_up_and_in_put_price(const double &S, const double &
 {
     if (B < K)
     {
-        double european_put_price = _pAnalytic->calc_put_price(S, K, r, v, T);
-        double up_and_out_put_price = calc_up_and_out_put_price(S, K, r, v, T, q, B, tau);
-        return european_put_price - up_and_out_put_price;
+        double european_put_price = _pAnalytic->calc_put_price(S, K, r, v, T, q);
+        if (B < S){
+            return european_put_price;
+        }else{
+            double up_and_out_put_price = calc_up_and_out_put_price(S, K, r, v, T, q, B, tau);
+            return european_put_price - up_and_out_put_price;
+        }
     }
 
     double gamma = calc_gamma(r, q, v);
@@ -154,7 +185,7 @@ double AnalyticBarrier::calc_down_and_out_put_price(const double &S, const doubl
 
     if (B < K)
     {
-        double european_put_price = _pAnalytic->calc_put_price(S, K, r, v, T);
+        double european_put_price = _pAnalytic->calc_put_price(S, K, r, v, T, q);
         double down_and_in_put_price = calc_down_and_in_put_price(S, K, r, v, T, q, B, tau);
         return european_put_price - down_and_in_put_price;
     }
@@ -169,16 +200,18 @@ double AnalyticBarrier::calc_down_and_in_put_price(const double &S, const double
     if (B < K)
     {
         double gamma = calc_gamma(r, q, v);
-        double mu = calc_mu(S, B, v, tau, gamma);
+        double nu = calc_nu(S, B, v, tau, gamma);
         double eta = calc_eta(S, B, v, tau, K, gamma);
         double lambda = calc_lambda(S, B, v, tau, gamma);
 
-        return -S * exp(-q * tau) * _sd->cdf(-mu) 
-          + K * exp(-r * tau) * _sd->cdf(-mu + v * sqrt(tau)) 
-          + S * exp(-q * tau) * pow((B / S), 2.0 * gamma) * (_sd->cdf(eta) - _sd->cdf(lambda)) 
-          - K * exp(-r * tau) * pow((B / S), 2.0 * gamma - 2.0) * (_sd->cdf(eta - v * sqrt(tau) - _sd->cdf(lambda - v * sqrt(lambda))));
+        double term_1 = S * exp(-q * tau) * _sd->cdf(-nu);
+        double term_2 = K * exp(-r * tau) * _sd->cdf(-nu + v * sqrt(tau));
+        double term_3 = S * exp(-q * tau) * pow((B / S), 2.0 * gamma) * (_sd->cdf(eta) - _sd->cdf(lambda));
+        double term_4 = K * exp(-r * tau) * pow((B / S), 2.0 * gamma - 2.0) * (_sd->cdf(eta - v * sqrt(tau) - _sd->cdf(lambda - v * sqrt(lambda))));
+
+        return -term_1 + term_2 + term_3 - term_4;
     }
 
-    return _pAnalytic->calc_put_price(S, K, r, v, T);
+    return _pAnalytic->calc_put_price(S, K, r, v, T, q);
 }
 #endif

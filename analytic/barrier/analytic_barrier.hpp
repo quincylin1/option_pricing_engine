@@ -10,11 +10,6 @@ private:
     StatisticalDistribution *_sd;
     AnalyticEuropean *_pAnalytic;
 
-public:
-    AnalyticBarrier(){};
-    AnalyticBarrier(StatisticalDistribution *sd, AnalyticEuropean *pAnalytic);
-    ~AnalyticBarrier(){};
-
     virtual double calc_gamma(const double &r, const double &q,
                               const double &v) const;
 
@@ -29,6 +24,11 @@ public:
     virtual double calc_lambda(const double &S, const double &B,
                                const double &v, const double &tau,
                                const double &gamma) const;
+
+public:
+    AnalyticBarrier(){};
+    AnalyticBarrier(StatisticalDistribution *sd, AnalyticEuropean *pAnalytic);
+    ~AnalyticBarrier(){};
 
     virtual double calc_up_and_out_call_price(const double &S, const double &K, const double &r,
                                               const double &v, const double &T, const double &q,

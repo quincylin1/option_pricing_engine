@@ -4,8 +4,7 @@
 #include "analytic_lookback.hpp"
 
 
-AnalyticLookBack::AnalyticLookBack(StatisticalDistribution* sd, unsigned long num_intervals)
- : sd_(sd), num_intervals_(num_intervals) {}
+AnalyticLookBack::AnalyticLookBack(StatisticalDistribution* sd) : sd_(sd) {}
 
 double AnalyticLookBack::calc_a_1(const double &S, 
                              const double &H, 
@@ -31,7 +30,7 @@ double AnalyticLookBack::calc_a_3(const double &S,
                              const double &v,
                              const double &T) const
 {
-    return calc_a_1(S, H, r, v, T) - 2.0 * r * sqrt(T) /v;
+    return calc_a_1(S, H, r, v, T) - (2.0 * r * sqrt(T) / v);
 }
 
 double AnalyticLookBack::calc_call_price(const double &S, const double& m, const double &r,
@@ -41,10 +40,11 @@ double AnalyticLookBack::calc_call_price(const double &S, const double& m, const
     double a_2 = calc_a_2(S, m, r, v, T);
     double a_3 = calc_a_3(S, m, r, v, T);
 
-    return S * sd_->cdf(a_1) 
-      - m * exp(-r * T) * sd_->cdf(a_2) 
-      - ((S * v * v) / (2 * r)) 
-      * (sd_->cdf(-a_1) - exp(-r * T) * pow((m / S), ((2 * r) / (v * v))) * sd_->cdf(-a_3));
+    double term_1 = S * sd_->cdf(a_1);
+    double term_2 = m * exp(-r * T) * sd_->cdf(a_2);
+    double term_3 = ((S * v * v) / (2.0 * r)) * (sd_->cdf(-a_1) - exp(-r * T) * pow((m / S), ((2 * r) / (v * v))) * sd_->cdf(-a_3));
+
+    return term_1 - term_2 - term_3;
 }
 
 double AnalyticLookBack::calc_put_price(const double &S, const double &M, const double &r,
@@ -54,10 +54,11 @@ double AnalyticLookBack::calc_put_price(const double &S, const double &M, const 
     double a_2 = calc_a_2(S, M, r, v, T);
     double a_3 = calc_a_3(S, M, r, v, T);
 
-    return - S * sd_->cdf(-a_1) 
-      + M * exp(-r * T) * sd_->cdf(-a_2) 
-      + ((S * v * v) / (2 * r)) 
-      * (sd_->cdf(a_1) - exp(-r * T) * pow((M / S), ((2 * r) / (v * v))) * sd_->cdf(a_3));
+    double term_1 = S * sd_->cdf(-a_1);
+    double term_2 = M * exp(-r * T) * sd_->cdf(-a_2);
+    double term_3 = ((S * v * v) / (2 * r)) * (sd_->cdf(a_1) - exp(-r * T) * pow((M / S), ((2 * r) / (v * v))) * sd_->cdf(a_3));
+
+    return - term_1 + term_2 + term_3;
 }
 
 #endif 

@@ -8,35 +8,34 @@ class AnalyticLookBack
 {
 private:
     StatisticalDistribution *sd_;
-    unsigned long num_intervals_;
+
+    double calc_a_1(const double &S, // Spot price
+                    const double &H, // Min/max of asset price over period
+                    const double &r, // Risk free rate
+                    const double &v, // Volatility of underlying asset
+                    const double &T) const;
+
+    double calc_a_2(const double &S, // Spot price
+                    const double &H, // Min/max of asset price over period
+                    const double &r, // Risk free rate
+                    const double &v, // Volatility of underlying asset
+                    const double &T) const;
+
+    double calc_a_3(const double &S, // Spot price
+                    const double &H, // Min/max of asset price over period
+                    const double &r, // Risk free rate
+                    const double &v, // Volatility of underlying asset
+                    const double &T) const;
 
 public:
     AnalyticLookBack(){};
-    AnalyticLookBack(StatisticalDistribution *sd, unsigned long num_intervals);
+    AnalyticLookBack(StatisticalDistribution *sd);
     ~AnalyticLookBack(){};
 
-    double calc_a_1(const double &S, // Spot price
-               const double &H, // Min/max of asset price over period
-               const double &r, // Risk free rate
-               const double &v, // Volatility of underlying asset
-               const double &T) const;
-
-    double calc_a_2(const double &S, // Spot price
-               const double &H, // Min/max of asset price over period
-               const double &r, // Risk free rate
-               const double &v, // Volatility of underlying asset
-               const double &T) const;
-
-    double calc_a_3(const double &S, // Spot price
-               const double &H, // Min/max of asset price over period
-               const double &r, // Risk free rate
-               const double &v, // Volatility of underlying asset
-               const double &T) const;
-
-    double calc_call_price(const double &S_0, const double &r, const double &m,
+    double calc_call_price(const double &S_0, const double &m, const double &r,
                            const double &v, const double &T) const;
 
-    double calc_put_price(const double &S_0, const double &r, const double &M,
+    double calc_put_price(const double &S_0, const double &M, const double &r,
                            const double &v, const double &T) const;
 };
 

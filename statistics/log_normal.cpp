@@ -7,18 +7,18 @@
 LogNormalDistribution::LogNormalDistribution(StandardNormalDistribution *snd) : _snd(snd) {}
 LogNormalDistribution::~LogNormalDistribution(){}
 
-double LogNormalDistribution::pdf(const double &x) const {
+double LogNormalDistribution::pdf(const double &x) {
     if (x <= 0){
         std::cout << "x must be greater than zero" << std::endl;
     }
     return (1 / (sqrt(2.0 * M_PI) * x)) * exp(-0.5 * (log(x) * log(x)));
 }
 
-double LogNormalDistribution::cdf(const double &x) const {
+double LogNormalDistribution::cdf(const double &x) {
     return _snd->cdf(log(x));
 }
 
-double LogNormalDistribution::inv_cdf(const double &x) const {
+double LogNormalDistribution::inv_cdf(const double &x) {
     return exp(_snd->inv_cdf(x));
 }
 

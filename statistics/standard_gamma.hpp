@@ -2,17 +2,23 @@
 #define __STANDARD_GAMMA_HPP
 
 #include "statistics.hpp"
+#include <complex>
 
 class StandardGammaDistribution : public StatisticalDistribution
 {
+private:
+    double alpha_;
+
 public:
-    StandardGammaDistribution();
+    StandardGammaDistribution(double alpha);
     virtual ~StandardGammaDistribution();
 
-    virtual double pdf(const double &x) const;
-    virtual double cdf(const double &x) const;
+    virtual double gamma_function(double z);
 
-    virtual double inv_cdf(const double &quantile) const;
+    virtual double pdf(const double &x);
+    virtual double cdf(const double &x);
+
+    virtual double inv_cdf(const double &quantile);
 
     virtual double mean() const;
     virtual double var() const;

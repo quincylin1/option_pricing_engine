@@ -11,11 +11,11 @@ public:
     virtual ~StatisticalDistribution();
 
     // Distribution functions
-    virtual double pdf(const double &x) const = 0;
-    virtual double cdf(const double &x) const = 0;
+    virtual double pdf(const double &x) = 0;
+    virtual double cdf(const double &x) = 0;
 
     // Inverse cdf (a.k.a quantile function)
-    virtual double inv_cdf(const double &quantile) const = 0;
+    virtual double inv_cdf(const double &quantile) = 0;
 
     // Descriptive stats
     virtual double mean() const = 0;

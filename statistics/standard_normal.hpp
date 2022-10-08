@@ -9,10 +9,10 @@ public:
     StandardNormalDistribution();
     virtual ~StandardNormalDistribution();
 
-    virtual double pdf(const double &x) const;
-    virtual double cdf(const double &x) const;
+    virtual double pdf(const double &x);
+    virtual double cdf(const double &x);
 
-    virtual double inv_cdf(const double &quantile) const;
+    virtual double inv_cdf(const double &quantile);
 
     virtual double mean() const;
     virtual double var() const;
